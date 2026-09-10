@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Amiga Specialty HR"
+version = "1.0.0"
+id = "artifacts/amiga-hr"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19185
+
+[services.development]
+run = "pnpm --filter @workspace/amiga-hr run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/amiga-hr", "run", "build" ]
+publicDir = "artifacts/amiga-hr/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19185"
+BASE_PATH = "/"

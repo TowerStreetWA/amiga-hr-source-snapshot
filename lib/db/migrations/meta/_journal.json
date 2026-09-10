@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1749600000000,
+      "tag": "0000_phase_a_tenants",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1749600001000,
+      "tag": "0001_seed_amiga_tenant",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1749600002000,
+      "tag": "0002_phase_b_add_tenant_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1749600003000,
+      "tag": "0003_phase_b_backfill_tenant_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1749600004000,
+      "tag": "0004_phase_b_tenant_id_not_null",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1749600005000,
+      "tag": "0005_phase_b_tenant_scoped_uniques",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1749600006000,
+      "tag": "0006_phase_b_composite_fks",
+      "breakpoints": true
+    }
+  ]
+}

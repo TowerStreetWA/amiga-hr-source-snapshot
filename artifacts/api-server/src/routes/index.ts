@@ -1,0 +1,48 @@
+import { Router, type IRouter } from "express";
+import healthRouter from "./health";
+import storageRouter from "./storage";
+import meRouter from "./me";
+import adminUsersRouter from "./adminUsers";
+import employeesRouter from "./employees";
+import dashboardRouter from "./dashboard";
+import jobsRouter from "./jobs";
+import candidatesRouter from "./candidates";
+import interviewsRouter from "./interviews";
+import offersRouter from "./offers";
+import recruitmentRouter from "./recruitment";
+import publicRouter from "./public";
+import onboardingRouter from "./onboarding";
+import trainingRouter from "./training";
+import leaveRouter from "./leave";
+import sicknessRouter from "./sickness";
+import payRouter from "./pay";
+import benefitsRouter from "./benefits";
+import importRouter from "./import";
+import settingsRouter from "./settings";
+import adminMaintenanceRouter from "./adminMaintenance";
+
+const router: IRouter = Router();
+
+router.use(healthRouter);
+router.use(storageRouter);
+router.use(meRouter);
+router.use(adminUsersRouter);
+router.use(employeesRouter);
+router.use(dashboardRouter);
+router.use(jobsRouter);
+router.use(candidatesRouter);
+router.use(interviewsRouter);
+router.use(offersRouter);
+router.use(recruitmentRouter);
+router.use(publicRouter);
+router.use(onboardingRouter);
+router.use(trainingRouter);
+router.use(leaveRouter);
+router.use(sicknessRouter);
+router.use(payRouter);
+router.use(benefitsRouter);
+router.use(importRouter);
+router.use(settingsRouter);
+router.use(adminMaintenanceRouter);
+
+export default router;

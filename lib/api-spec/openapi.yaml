@@ -1,0 +1,2972 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Amiga Specialty HR Platform API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: employees
+    description: Employee records
+  - name: salary
+    description: Salary history
+  - name: documents
+    description: Employee documents
+  - name: dashboard
+    description: Dashboard stats and activity
+  - name: storage
+    description: Object storage
+  - name: jobs
+    description: Job postings
+  - name: candidates
+    description: Recruitment candidates
+  - name: interviews
+    description: Candidate interviews
+  - name: offers
+    description: Candidate offers
+  - name: recruitment
+    description: Recruitment workflow
+  - name: public
+    description: Public unauthenticated endpoints
+  - name: onboarding
+    description: Employee onboarding tasks
+  - name: training
+    description: Employee training records
+  - name: leave
+    description: Employee leave management
+  - name: sickness
+    description: Sickness absence tracking
+  - name: pay
+    description: Pay & compensation analytics and bulk reviews
+  - name: benefits
+    description: Benefits catalogue and assignments
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /me:
+    get:
+      operationId: getCurrentUser
+      tags: [me]
+      summary: Current authenticated user (role + linked employee)
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CurrentUser" }
+
+  /admin/users:
+    get:
+      operationId: listAppUsers
+      tags: [admin]
+      summary: List app users with roles (admin only)
+      responses:
+        "200":
+          description: App users
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AppUser" }
+
+  /admin/users/{id}:
+    patch:
+      operationId: updateAppUser
+      tags: [admin]
+      summary: Update an app user's role / linked employee (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateAppUserBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppUser" }
+
+  /admin/maintenance/public-uploads/health:
+    get:
+      operationId: getPublicUploadCleanupHealth
+      tags: [admin]
+      summary: Get aggregate public upload cleanup health (admin only)
+      responses:
+        "200":
+          description: Tenant cleanup health
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PublicUploadCleanupHealth" }
+
+  /employees:
+    get:
+      operationId: listEmployees
+      tags: [employees]
+      summary: List employees
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, on_leave, terminated]
+        - name: department
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Employee" }
+    post:
+      operationId: createEmployee
+      tags: [employees]
+      summary: Create employee
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateEmployeeBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+
+  /employees/{id}:
+    get:
+      operationId: getEmployee
+      tags: [employees]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Employee
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+    patch:
+      operationId: updateEmployee
+      tags: [employees]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateEmployeeBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+    delete:
+      operationId: deleteEmployee
+      tags: [employees]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /employees/{id}/salary-history:
+    get:
+      operationId: listSalaryHistory
+      tags: [salary]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Salary history
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SalaryChange" }
+    post:
+      operationId: createSalaryChange
+      tags: [salary]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateSalaryChangeBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SalaryChange" }
+
+  /employees/{id}/documents:
+    get:
+      operationId: listEmployeeDocuments
+      tags: [documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/EmployeeDocument" }
+    post:
+      operationId: createEmployeeDocument
+      tags: [documents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateDocumentBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmployeeDocument" }
+
+  /documents/{docId}:
+    delete:
+      operationId: deleteEmployeeDocument
+      tags: [documents]
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DashboardStats" }
+
+  /dashboard/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ActivityEntry" }
+
+  /dashboard/department-breakdown:
+    get:
+      operationId: getDepartmentBreakdown
+      tags: [dashboard]
+      responses:
+        "200":
+          description: Department breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DepartmentCount" }
+
+  /dashboard/upcoming-anniversaries:
+    get:
+      operationId: getUpcomingAnniversaries
+      tags: [dashboard]
+      responses:
+        "200":
+          description: Upcoming anniversaries (next 60 days)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AnniversaryEntry" }
+
+  /storage/uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [storage]
+      summary: Request a presigned upload URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RequestUploadUrlBody" }
+      responses:
+        "200":
+          description: Upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RequestUploadUrlResponse" }
+
+  /jobs:
+    get:
+      operationId: listJobs
+      tags: [jobs]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [open, closed, draft] }
+      responses:
+        "200":
+          description: Jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Job" }
+    post:
+      operationId: createJob
+      tags: [jobs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateJobBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+
+  /jobs/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getJob
+      tags: [jobs]
+      responses:
+        "200":
+          description: Job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+    patch:
+      operationId: updateJob
+      tags: [jobs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateJobBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+    delete:
+      operationId: deleteJob
+      tags: [jobs]
+      responses:
+        "204": { description: Deleted }
+
+  /candidates:
+    get:
+      operationId: listCandidates
+      tags: [candidates]
+      parameters:
+        - in: query
+          name: stage
+          schema: { type: string }
+        - in: query
+          name: jobId
+          schema: { type: integer }
+        - in: query
+          name: search
+          schema: { type: string }
+      responses:
+        "200":
+          description: Candidates
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Candidate" }
+    post:
+      operationId: createCandidate
+      tags: [candidates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCandidateBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Candidate" }
+
+  /candidates/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getCandidate
+      tags: [candidates]
+      responses:
+        "200":
+          description: Candidate detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CandidateDetail" }
+    patch:
+      operationId: updateCandidate
+      tags: [candidates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateCandidateBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Candidate" }
+    delete:
+      operationId: deleteCandidate
+      tags: [candidates]
+      responses:
+        "204": { description: Deleted }
+
+  /candidates/{id}/stage:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    post:
+      operationId: changeCandidateStage
+      tags: [candidates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChangeStageBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Candidate" }
+
+  /candidates/{id}/documents:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: listCandidateDocuments
+      tags: [candidates]
+      responses:
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CandidateDocument" }
+    post:
+      operationId: createCandidateDocument
+      tags: [candidates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCandidateDocumentBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CandidateDocument" }
+
+  /candidate-documents/{docId}:
+    parameters:
+      - in: path
+        name: docId
+        required: true
+        schema: { type: integer }
+    delete:
+      operationId: deleteCandidateDocument
+      tags: [candidates]
+      responses:
+        "204": { description: Deleted }
+
+  /candidates/{id}/interviews:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: listInterviews
+      tags: [interviews]
+      responses:
+        "200":
+          description: Interviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Interview" }
+    post:
+      operationId: createInterview
+      tags: [interviews]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateInterviewBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Interview" }
+
+  /interviews/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    patch:
+      operationId: updateInterview
+      tags: [interviews]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateInterviewBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Interview" }
+    delete:
+      operationId: deleteInterview
+      tags: [interviews]
+      responses:
+        "204": { description: Deleted }
+
+  /candidates/{id}/offers:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: listOffers
+      tags: [offers]
+      responses:
+        "200":
+          description: Offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Offer" }
+    post:
+      operationId: createOffer
+      tags: [offers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateOfferBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Offer" }
+
+  /offers/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    patch:
+      operationId: updateOffer
+      tags: [offers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateOfferBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Offer" }
+    delete:
+      operationId: deleteOffer
+      tags: [offers]
+      responses:
+        "204": { description: Deleted }
+
+  /candidates/{id}/convert-to-employee:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    post:
+      operationId: convertCandidateToEmployee
+      tags: [recruitment]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConvertCandidateBody" }
+      responses:
+        "201":
+          description: Employee created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+
+  /recruitment/stats:
+    get:
+      operationId: getRecruitmentStats
+      tags: [recruitment]
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecruitmentStats" }
+
+  /public/jobs:
+    get:
+      operationId: listPublicJobs
+      tags: [public]
+      responses:
+        "200":
+          description: Open jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Job" }
+        "503":
+          description: Open roles are temporarily unavailable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicJobsUnavailableResponse" }
+
+  /public/applications:
+    post:
+      operationId: submitApplication
+      tags: [public]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PublicApplicationBody" }
+      responses:
+        "200":
+          description: Existing application returned for an idempotent retry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicApplicationResponse" }
+        "201":
+          description: Submitted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicApplicationResponse" }
+
+  /public/storage/uploads/request-url:
+    post:
+      operationId: requestPublicUploadUrl
+      tags: [public]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RequestUploadUrlBody" }
+      responses:
+        "200":
+          description: Upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RequestUploadUrlResponse" }
+
+  /onboarding/overview:
+    get:
+      operationId: getOnboardingOverview
+      tags: [onboarding]
+      summary: Per-employee onboarding overview
+      responses:
+        "200":
+          description: Overview rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/OnboardingEmployeeOverview" }
+
+  /onboarding/employees/{id}/tasks:
+    get:
+      operationId: listOnboardingTasks
+      tags: [onboarding]
+      summary: List onboarding tasks for an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/OnboardingTask" }
+    post:
+      operationId: createOnboardingTask
+      tags: [onboarding]
+      summary: Add onboarding task to employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateOnboardingTaskBody" }
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OnboardingTask" }
+
+  /onboarding-tasks/{taskId}:
+    patch:
+      operationId: updateOnboardingTask
+      tags: [onboarding]
+      summary: Update onboarding task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateOnboardingTaskBody" }
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OnboardingTask" }
+    delete:
+      operationId: deleteOnboardingTask
+      tags: [onboarding]
+      summary: Delete onboarding task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /training:
+    get:
+      operationId: listAllTrainingRecords
+      tags: [training]
+      summary: List training records across all employees
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in_progress, completed, expired, overdue, expiring_soon, all]
+        - name: category
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Records with employee info
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TrainingRecordWithEmployee" }
+
+  /training/stats:
+    get:
+      operationId: getTrainingStats
+      tags: [training]
+      summary: Training & onboarding alert counters
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OnboardingTrainingStats" }
+
+  /training/employees/{id}:
+    get:
+      operationId: listEmployeeTrainingRecords
+      tags: [training]
+      summary: List training records for an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Records
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TrainingRecord" }
+    post:
+      operationId: createTrainingRecord
+      tags: [training]
+      summary: Add training record to employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateTrainingRecordBody" }
+      responses:
+        "201":
+          description: Record created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TrainingRecord" }
+
+  /training-records/{recordId}:
+    patch:
+      operationId: updateTrainingRecord
+      tags: [training]
+      summary: Update training record
+      parameters:
+        - name: recordId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateTrainingRecordBody" }
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TrainingRecord" }
+    delete:
+      operationId: deleteTrainingRecord
+      tags: [training]
+      summary: Delete training record
+      parameters:
+        - name: recordId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /leave:
+    get:
+      operationId: listLeaveRequests
+      tags: [leave]
+      summary: List all leave requests
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: leaveType
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LeaveRequestWithEmployee" }
+
+  /leave/calendar:
+    get:
+      operationId: getLeaveCalendar
+      tags: [leave]
+      summary: Approved leave entries within window
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string }
+        - name: to
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Calendar entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LeaveCalendarEntry" }
+
+  /leave/stats:
+    get:
+      operationId: getLeaveStats
+      tags: [leave]
+      summary: Leave & sickness alert counters
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LeaveStats" }
+
+  /leave/employees/{id}/entitlements:
+    get:
+      operationId: listEmployeeLeaveEntitlements
+      tags: [leave]
+      summary: List leave entitlements for an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: year
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Entitlements
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LeaveEntitlement" }
+
+  /leave/employees/{id}/entitlements/{leaveType}:
+    put:
+      operationId: upsertEmployeeLeaveEntitlement
+      tags: [leave]
+      summary: Upsert a leave entitlement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: leaveType
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpsertLeaveEntitlementBody" }
+      responses:
+        "200":
+          description: Entitlement
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LeaveEntitlement" }
+
+  /leave/employees/{id}/seed-defaults:
+    post:
+      operationId: seedEmployeeLeaveDefaults
+      tags: [leave]
+      summary: Seed default leave entitlements for an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SeedLeaveDefaultsBody" }
+      responses:
+        "200":
+          description: Seeded entitlements
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LeaveEntitlement" }
+
+  /leave/employees/{id}/requests:
+    get:
+      operationId: listEmployeeLeaveRequests
+      tags: [leave]
+      summary: List leave requests for an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LeaveRequest" }
+    post:
+      operationId: createLeaveRequest
+      tags: [leave]
+      summary: Create leave request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateLeaveRequestBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LeaveRequest" }
+
+  /leave-requests/{requestId}:
+    patch:
+      operationId: updateLeaveRequest
+      tags: [leave]
+      summary: Update leave request (approve / decline / cancel)
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateLeaveRequestBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LeaveRequest" }
+    delete:
+      operationId: deleteLeaveRequest
+      tags: [leave]
+      summary: Delete leave request
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /sickness:
+    get:
+      operationId: listSicknessAbsences
+      tags: [sickness]
+      summary: List sickness absences across employees
+      responses:
+        "200":
+          description: Absences with bradford
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SicknessAbsenceWithEmployee" }
+
+  /sickness/employees/{id}:
+    get:
+      operationId: getEmployeeSickness
+      tags: [sickness]
+      summary: Sickness summary for one employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SicknessEmployeeSummary" }
+    post:
+      operationId: createSicknessAbsence
+      tags: [sickness]
+      summary: Add sickness absence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateSicknessAbsenceBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SicknessAbsence" }
+
+  /pay/stats:
+    get:
+      operationId: getPayStats
+      tags: [pay]
+      summary: Pay & compensation top-line stats
+      responses:
+        "200":
+          description: Pay stats
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PayStats" }
+
+  /pay/by-department:
+    get:
+      operationId: getPayByDepartment
+      tags: [pay]
+      summary: Salary cost grouped by department
+      responses:
+        "200":
+          description: Departments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DepartmentPay" }
+
+  /pay/salary-bands:
+    get:
+      operationId: getSalaryBands
+      tags: [pay]
+      summary: Salary distribution across six bands
+      responses:
+        "200":
+          description: Bands
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SalaryBand" }
+
+  /pay/recent-changes:
+    get:
+      operationId: getRecentSalaryChanges
+      tags: [pay]
+      summary: Most recent salary changes across employees
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Salary changes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SalaryChangeWithEmployee" }
+
+  /pay/due-for-review:
+    get:
+      operationId: getDueForReview
+      tags: [pay]
+      summary: Employees who have not had a salary change in 11+ months
+      responses:
+        "200":
+          description: Due for review
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DueForReviewEmployee" }
+
+  /pay/bulk-review:
+    post:
+      operationId: applyBulkReview
+      tags: [pay]
+      summary: Apply a batch of new salaries with one effective date
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BulkReviewBody" }
+      responses:
+        "200":
+          description: Result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BulkReviewResult" }
+
+  /benefits:
+    get:
+      operationId: listBenefits
+      tags: [benefits]
+      summary: List catalogue benefits
+      responses:
+        "200":
+          description: Benefits
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BenefitCatalog" }
+    post:
+      operationId: createBenefit
+      tags: [benefits]
+      summary: Create a catalogue benefit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateBenefitBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BenefitCatalog" }
+
+  /benefits/{benefitId}:
+    patch:
+      operationId: updateBenefit
+      tags: [benefits]
+      summary: Update catalogue benefit
+      parameters:
+        - name: benefitId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateBenefitBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BenefitCatalog" }
+    delete:
+      operationId: deleteBenefit
+      tags: [benefits]
+      summary: Delete catalogue benefit
+      parameters:
+        - name: benefitId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /employees/{id}/benefits:
+    get:
+      operationId: listEmployeeBenefits
+      tags: [benefits]
+      summary: List benefits assigned to an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Assigned benefits
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/EmployeeBenefitWithCatalog" }
+    post:
+      operationId: createEmployeeBenefit
+      tags: [benefits]
+      summary: Assign a benefit to an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateEmployeeBenefitBody" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmployeeBenefit" }
+
+  /employee-benefits/{employeeBenefitId}:
+    patch:
+      operationId: updateEmployeeBenefit
+      tags: [benefits]
+      summary: Update an assigned benefit
+      parameters:
+        - name: employeeBenefitId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateEmployeeBenefitBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmployeeBenefit" }
+    delete:
+      operationId: deleteEmployeeBenefit
+      tags: [benefits]
+      summary: Remove an assigned benefit
+      parameters:
+        - name: employeeBenefitId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /employees/{id}/total-reward:
+    get:
+      operationId: getTotalReward
+      tags: [benefits]
+      summary: Total reward statement (base + benefits + leave entitlements)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Statement
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TotalRewardStatement" }
+
+  /sickness-absences/{absenceId}:
+    patch:
+      operationId: updateSicknessAbsence
+      tags: [sickness]
+      summary: Update sickness absence
+      parameters:
+        - name: absenceId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateSicknessAbsenceBody" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SicknessAbsence" }
+    delete:
+      operationId: deleteSicknessAbsence
+      tags: [sickness]
+      summary: Delete sickness absence
+      parameters:
+        - name: absenceId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /import/template:
+    get:
+      operationId: getImportTemplate
+      summary: Download Excel template for bulk employee import
+      responses:
+        "200":
+          description: XLSX file
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+
+  /import/preview:
+    post:
+      operationId: previewImport
+      summary: Upload an Excel/CSV file and preview parsed/validated rows (no commit)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+              required: [file]
+      responses:
+        "200":
+          description: Preview
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportPreview" }
+        "400":
+          description: Invalid file
+
+  /import/commit:
+    post:
+      operationId: commitImport
+      summary: Insert validated employees, optionally sending welcome emails
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ImportCommitBody" }
+      responses:
+        "200":
+          description: Imported
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportCommitResult" }
+        "400":
+          description: Invalid input
+
+  /settings/email:
+    get:
+      operationId: getEmailSettings
+      summary: Email/SMTP configuration status
+      responses:
+        "200":
+          description: Status
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmailSettings" }
+
+  /settings/email/test:
+    post:
+      operationId: sendTestEmail
+      summary: Send a test email to confirm SMTP is working
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to: { type: string, minLength: 3 }
+              required: [to]
+      responses:
+        "200":
+          description: Result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmailTestResult" }
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status: { type: string }
+      required: [status]
+
+    Employee:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeNumber: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: ["string", "null"] }
+        jobTitle: { type: string }
+        department: { type: string }
+        status:
+          type: string
+          enum: [active, on_leave, terminated]
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+        managerId: { type: ["integer", "null"] }
+        startDate: { type: string }
+        endDate: { type: ["string", "null"] }
+        salary: { type: ["number", "null"] }
+        currency: { type: string }
+        dateOfBirth: { type: ["string", "null"] }
+        addressLine1: { type: ["string", "null"] }
+        addressLine2: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        postcode: { type: ["string", "null"] }
+        country: { type: ["string", "null"] }
+        emergencyName: { type: ["string", "null"] }
+        emergencyRelationship: { type: ["string", "null"] }
+        emergencyPhone: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required:
+        [
+          id,
+          employeeNumber,
+          firstName,
+          lastName,
+          email,
+          jobTitle,
+          department,
+          status,
+          employmentType,
+          startDate,
+          currency,
+          createdAt,
+          updatedAt,
+        ]
+
+    CreateEmployeeBody:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: ["string", "null"] }
+        jobTitle: { type: string }
+        department: { type: string }
+        status:
+          type: string
+          enum: [active, on_leave, terminated]
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+        managerId: { type: ["integer", "null"] }
+        startDate: { type: string }
+        endDate: { type: ["string", "null"] }
+        salary: { type: ["number", "null"] }
+        currency: { type: ["string", "null"] }
+        dateOfBirth: { type: ["string", "null"] }
+        addressLine1: { type: ["string", "null"] }
+        addressLine2: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        postcode: { type: ["string", "null"] }
+        country: { type: ["string", "null"] }
+        emergencyName: { type: ["string", "null"] }
+        emergencyRelationship: { type: ["string", "null"] }
+        emergencyPhone: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+      required:
+        [firstName, lastName, email, jobTitle, department, employmentType, startDate]
+
+    UpdateEmployeeBody:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: ["string", "null"] }
+        jobTitle: { type: string }
+        department: { type: string }
+        status:
+          type: string
+          enum: [active, on_leave, terminated]
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+        managerId: { type: ["integer", "null"] }
+        startDate: { type: string }
+        endDate: { type: ["string", "null"] }
+        salary: { type: ["number", "null"] }
+        currency: { type: ["string", "null"] }
+        dateOfBirth: { type: ["string", "null"] }
+        addressLine1: { type: ["string", "null"] }
+        addressLine2: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        postcode: { type: ["string", "null"] }
+        country: { type: ["string", "null"] }
+        emergencyName: { type: ["string", "null"] }
+        emergencyRelationship: { type: ["string", "null"] }
+        emergencyPhone: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+
+    CurrentUserEmployee:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeNumber: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        jobTitle: { type: string }
+        department: { type: string }
+      required:
+        [id, employeeNumber, firstName, lastName, jobTitle, department]
+
+    CurrentUser:
+      type: object
+      properties:
+        clerkUserId: { type: string }
+        email: { type: string }
+        role:
+          type: string
+          enum: [admin, manager, employee]
+        employeeId: { type: ["integer", "null"] }
+        linked: { type: boolean }
+        employee:
+          oneOf:
+            - $ref: "#/components/schemas/CurrentUserEmployee"
+            - type: "null"
+      required: [clerkUserId, email, role, employeeId, linked, employee]
+
+    AppUser:
+      type: object
+      properties:
+        id: { type: integer }
+        clerkUserId: { type: string }
+        email: { type: string }
+        role:
+          type: string
+          enum: [admin, manager, employee]
+        employeeId: { type: ["integer", "null"] }
+        employeeName: { type: ["string", "null"] }
+        employeeNumber: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required: [id, clerkUserId, email, role, employeeId, createdAt, updatedAt]
+
+    PublicUploadCleanupHealth:
+      type: object
+      properties:
+        tenantId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [active, recovered]
+        failureCount: { type: integer, minimum: 0 }
+        failedUploadCount: { type: integer, minimum: 0 }
+        lastFailureAt: { type: string, format: date-time }
+        recoveredAt: { type: ["string", "null"], format: date-time }
+      required:
+        [
+          tenantId,
+          status,
+          failureCount,
+          failedUploadCount,
+          lastFailureAt,
+          recoveredAt,
+        ]
+
+    UpdateAppUserBody:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [admin, manager, employee]
+        employeeId: { type: ["integer", "null"] }
+
+    SalaryChange:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        previousSalary: { type: ["number", "null"] }
+        newSalary: { type: number }
+        percentChange: { type: ["number", "null"] }
+        effectiveDate: { type: string }
+        reason: { type: ["string", "null"] }
+        createdAt: { type: string }
+      required: [id, employeeId, newSalary, effectiveDate, createdAt]
+
+    CreateSalaryChangeBody:
+      type: object
+      properties:
+        newSalary: { type: number }
+        effectiveDate: { type: string }
+        reason: { type: ["string", "null"] }
+      required: [newSalary, effectiveDate]
+
+    EmployeeDocument:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        name: { type: string }
+        category:
+          type: string
+          enum:
+            [contract, id_document, visa, qualification, payroll, performance, other]
+        objectPath: { type: string }
+        fileSize: { type: ["integer", "null"] }
+        mimeType: { type: ["string", "null"] }
+        uploadedAt: { type: string }
+      required: [id, employeeId, name, category, objectPath, uploadedAt]
+
+    CreateDocumentBody:
+      type: object
+      properties:
+        name: { type: string }
+        category:
+          type: string
+          enum:
+            [contract, id_document, visa, qualification, payroll, performance, other]
+        objectPath: { type: string }
+        fileSize: { type: ["integer", "null"] }
+        mimeType: { type: ["string", "null"] }
+      required: [name, category, objectPath]
+
+    DashboardStats:
+      type: object
+      properties:
+        totalEmployees: { type: integer }
+        activeEmployees: { type: integer }
+        onLeaveEmployees: { type: integer }
+        newHiresThisMonth: { type: integer }
+        departmentsCount: { type: integer }
+        averageTenureYears: { type: number }
+        totalDocuments: { type: integer }
+        totalPayrollMonthly: { type: number }
+      required:
+        [
+          totalEmployees,
+          activeEmployees,
+          onLeaveEmployees,
+          newHiresThisMonth,
+          departmentsCount,
+          averageTenureYears,
+          totalDocuments,
+          totalPayrollMonthly,
+        ]
+
+    DepartmentCount:
+      type: object
+      properties:
+        department: { type: string }
+        count: { type: integer }
+      required: [department, count]
+
+    AnniversaryEntry:
+      type: object
+      properties:
+        employeeId: { type: integer }
+        employeeNumber: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        jobTitle: { type: string }
+        department: { type: string }
+        startDate: { type: string }
+        yearsOfService: { type: integer }
+        anniversaryDate: { type: string }
+      required:
+        [
+          employeeId,
+          employeeNumber,
+          firstName,
+          lastName,
+          jobTitle,
+          department,
+          startDate,
+          yearsOfService,
+          anniversaryDate,
+        ]
+
+    ActivityEntry:
+      type: object
+      properties:
+        id: { type: integer }
+        action: { type: string }
+        entityType: { type: string }
+        entityId: { type: ["integer", "null"] }
+        summary: { type: string }
+        actor: { type: ["string", "null"] }
+        createdAt: { type: string }
+      required: [id, action, entityType, summary, createdAt]
+
+    RequestUploadUrlBody:
+      type: object
+      properties:
+        name: { type: string }
+        size: { type: integer }
+        contentType: { type: string }
+      required: [name, size, contentType]
+
+    RequestUploadUrlResponse:
+      type: object
+      properties:
+        uploadURL: { type: string }
+        objectPath: { type: string }
+      required: [uploadURL, objectPath]
+
+    Job:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        department: { type: string }
+        location: { type: string }
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+        salaryMin: { type: ["number", "null"] }
+        salaryMax: { type: ["number", "null"] }
+        currency: { type: string }
+        description: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [open, closed, draft]
+        closingDate: { type: ["string", "null"] }
+        hiringManagerId: { type: ["integer", "null"] }
+        candidateCount: { type: integer }
+        hiredCount: { type: integer }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required:
+        [id, title, department, location, employmentType, currency, status, candidateCount, hiredCount, createdAt, updatedAt]
+
+    CreateJobBody:
+      type: object
+      properties:
+        title: { type: string }
+        department: { type: string }
+        location: { type: ["string", "null"] }
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+        salaryMin: { type: ["number", "null"] }
+        salaryMax: { type: ["number", "null"] }
+        currency: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [open, closed, draft]
+        closingDate: { type: ["string", "null"] }
+        hiringManagerId: { type: ["integer", "null"] }
+      required: [title, department, employmentType]
+
+    UpdateJobBody:
+      type: object
+      properties:
+        title: { type: string }
+        department: { type: string }
+        location: { type: string }
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+        salaryMin: { type: ["number", "null"] }
+        salaryMax: { type: ["number", "null"] }
+        currency: { type: string }
+        description: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [open, closed, draft]
+        closingDate: { type: ["string", "null"] }
+        hiringManagerId: { type: ["integer", "null"] }
+
+    Candidate:
+      type: object
+      properties:
+        id: { type: integer }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: ["string", "null"] }
+        jobId: { type: ["integer", "null"] }
+        jobTitle: { type: ["string", "null"] }
+        currentStage:
+          type: string
+          enum: [new, cv_review, shortlisted, phone_screen, interview_1, interview_2, interview_3, assessment, offer_pending, offered, hired, rejected]
+        source:
+          type: string
+          enum: [online_application, manual, referral, agency]
+        rightToWorkStatus:
+          type: ["string", "null"]
+          enum: [uk_citizen, settled, work_visa, sponsorship_required, unknown, null]
+        linkedinUrl: { type: ["string", "null"] }
+        currentCompany: { type: ["string", "null"] }
+        currentRole: { type: ["string", "null"] }
+        yearsExperience: { type: ["integer", "null"] }
+        currentSalary: { type: ["number", "null"] }
+        expectedSalary: { type: ["number", "null"] }
+        noticePeriod: { type: ["string", "null"] }
+        lastBonusAmount: { type: ["number", "null"] }
+        lastBonusPercentage: { type: ["number", "null"] }
+        currentPensionPercentage: { type: ["number", "null"] }
+        referenceOneName: { type: ["string", "null"] }
+        referenceOneCompany: { type: ["string", "null"] }
+        referenceOneJobTitle: { type: ["string", "null"] }
+        referenceOneEmail: { type: ["string", "null"] }
+        referenceOnePhone: { type: ["string", "null"] }
+        referenceTwoName: { type: ["string", "null"] }
+        referenceTwoCompany: { type: ["string", "null"] }
+        referenceTwoJobTitle: { type: ["string", "null"] }
+        referenceTwoEmail: { type: ["string", "null"] }
+        referenceTwoPhone: { type: ["string", "null"] }
+        currency: { type: string }
+        coverLetter: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        appliedAt: { type: string }
+        hiredEmployeeId: { type: ["integer", "null"] }
+        rejectedReason: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required:
+        [id, firstName, lastName, email, currentStage, source, currency, appliedAt, createdAt, updatedAt]
+
+    CandidateDetail:
+      allOf:
+        - $ref: "#/components/schemas/Candidate"
+        - type: object
+          properties:
+            documents:
+              type: array
+              items: { $ref: "#/components/schemas/CandidateDocument" }
+            stageHistory:
+              type: array
+              items: { $ref: "#/components/schemas/StageHistoryEntry" }
+            interviews:
+              type: array
+              items: { $ref: "#/components/schemas/Interview" }
+            offers:
+              type: array
+              items: { $ref: "#/components/schemas/Offer" }
+          required: [documents, stageHistory, interviews, offers]
+
+    CreateCandidateBody:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: ["string", "null"] }
+        jobId: { type: ["integer", "null"] }
+        currentStage:
+          type: string
+          enum: [new, cv_review, shortlisted, phone_screen, interview_1, interview_2, interview_3, assessment, offer_pending, offered, hired, rejected]
+        source:
+          type: string
+          enum: [online_application, manual, referral, agency]
+        rightToWorkStatus:
+          type: ["string", "null"]
+          enum: [uk_citizen, settled, work_visa, sponsorship_required, unknown, null]
+        linkedinUrl: { type: ["string", "null"] }
+        currentCompany: { type: ["string", "null"] }
+        currentRole: { type: ["string", "null"] }
+        yearsExperience: { type: ["integer", "null"] }
+        currentSalary: { type: ["number", "null"] }
+        expectedSalary: { type: ["number", "null"] }
+        noticePeriod: { type: ["string", "null"] }
+        lastBonusAmount: { type: ["number", "null"] }
+        lastBonusPercentage: { type: ["number", "null"] }
+        currentPensionPercentage: { type: ["number", "null"] }
+        referenceOneName: { type: ["string", "null"] }
+        referenceOneCompany: { type: ["string", "null"] }
+        referenceOneJobTitle: { type: ["string", "null"] }
+        referenceOneEmail: { type: ["string", "null"] }
+        referenceOnePhone: { type: ["string", "null"] }
+        referenceTwoName: { type: ["string", "null"] }
+        referenceTwoCompany: { type: ["string", "null"] }
+        referenceTwoJobTitle: { type: ["string", "null"] }
+        referenceTwoEmail: { type: ["string", "null"] }
+        referenceTwoPhone: { type: ["string", "null"] }
+        currency: { type: ["string", "null"] }
+        coverLetter: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+      required: [firstName, lastName, email]
+
+    UpdateCandidateBody:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: ["string", "null"] }
+        jobId: { type: ["integer", "null"] }
+        rightToWorkStatus:
+          type: ["string", "null"]
+          enum: [uk_citizen, settled, work_visa, sponsorship_required, unknown, null]
+        linkedinUrl: { type: ["string", "null"] }
+        currentCompany: { type: ["string", "null"] }
+        currentRole: { type: ["string", "null"] }
+        yearsExperience: { type: ["integer", "null"] }
+        currentSalary: { type: ["number", "null"] }
+        expectedSalary: { type: ["number", "null"] }
+        noticePeriod: { type: ["string", "null"] }
+        lastBonusAmount: { type: ["number", "null"] }
+        lastBonusPercentage: { type: ["number", "null"] }
+        currentPensionPercentage: { type: ["number", "null"] }
+        referenceOneName: { type: ["string", "null"] }
+        referenceOneCompany: { type: ["string", "null"] }
+        referenceOneJobTitle: { type: ["string", "null"] }
+        referenceOneEmail: { type: ["string", "null"] }
+        referenceOnePhone: { type: ["string", "null"] }
+        referenceTwoName: { type: ["string", "null"] }
+        referenceTwoCompany: { type: ["string", "null"] }
+        referenceTwoJobTitle: { type: ["string", "null"] }
+        referenceTwoEmail: { type: ["string", "null"] }
+        referenceTwoPhone: { type: ["string", "null"] }
+        currency: { type: ["string", "null"] }
+        coverLetter: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+
+    ChangeStageBody:
+      type: object
+      properties:
+        toStage:
+          type: string
+          enum: [new, cv_review, shortlisted, phone_screen, interview_1, interview_2, interview_3, assessment, offer_pending, offered, hired, rejected]
+        note: { type: ["string", "null"] }
+        rejectedReason: { type: ["string", "null"] }
+      required: [toStage]
+
+    CandidateDocument:
+      type: object
+      properties:
+        id: { type: integer }
+        candidateId: { type: integer }
+        name: { type: string }
+        category:
+          type: string
+          enum: [cv, cover_letter, passport, right_to_work, qualification, reference, other]
+        objectPath: { type: string }
+        fileSize: { type: ["integer", "null"] }
+        mimeType: { type: ["string", "null"] }
+        uploadedAt: { type: string }
+      required: [id, candidateId, name, category, objectPath, uploadedAt]
+
+    CreateCandidateDocumentBody:
+      type: object
+      properties:
+        name: { type: string }
+        category:
+          type: string
+          enum: [cv, cover_letter, passport, right_to_work, qualification, reference, other]
+        objectPath: { type: string }
+        fileSize: { type: ["integer", "null"] }
+        mimeType: { type: ["string", "null"] }
+      required: [name, category, objectPath]
+
+    StageHistoryEntry:
+      type: object
+      properties:
+        id: { type: integer }
+        candidateId: { type: integer }
+        fromStage: { type: ["string", "null"] }
+        toStage: { type: string }
+        note: { type: ["string", "null"] }
+        changedBy: { type: string }
+        changedAt: { type: string }
+      required: [id, candidateId, toStage, changedBy, changedAt]
+
+    Interview:
+      type: object
+      properties:
+        id: { type: integer }
+        candidateId: { type: integer }
+        type:
+          type: string
+          enum: [phone, video, in_person, technical, panel]
+        scheduledFor: { type: string }
+        durationMinutes: { type: integer }
+        location: { type: ["string", "null"] }
+        interviewerName: { type: string }
+        status:
+          type: string
+          enum: [scheduled, completed, cancelled, no_show]
+        outcome:
+          type: ["string", "null"]
+          enum: [advance, hold, reject, null]
+        score: { type: ["integer", "null"] }
+        feedback: { type: ["string", "null"] }
+        completedAt: { type: ["string", "null"] }
+        createdAt: { type: string }
+      required: [id, candidateId, type, scheduledFor, durationMinutes, interviewerName, status, createdAt]
+
+    CreateInterviewBody:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [phone, video, in_person, technical, panel]
+        scheduledFor: { type: string }
+        durationMinutes: { type: integer }
+        location: { type: ["string", "null"] }
+        interviewerName: { type: string }
+      required: [type, scheduledFor, interviewerName]
+
+    UpdateInterviewBody:
+      type: object
+      properties:
+        scheduledFor: { type: string }
+        durationMinutes: { type: integer }
+        location: { type: ["string", "null"] }
+        interviewerName: { type: string }
+        status:
+          type: string
+          enum: [scheduled, completed, cancelled, no_show]
+        outcome:
+          type: ["string", "null"]
+          enum: [advance, hold, reject, null]
+        score: { type: ["integer", "null"] }
+        feedback: { type: ["string", "null"] }
+
+    Offer:
+      type: object
+      properties:
+        id: { type: integer }
+        candidateId: { type: integer }
+        salary: { type: number }
+        currency: { type: string }
+        startDate: { type: string }
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+        contractType:
+          type: string
+          enum: [permanent, fixed_term, contract]
+        benefitsNote: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [draft, sent, accepted, declined, withdrawn]
+        sentAt: { type: ["string", "null"] }
+        respondedAt: { type: ["string", "null"] }
+        declinedReason: { type: ["string", "null"] }
+        createdAt: { type: string }
+      required: [id, candidateId, salary, currency, startDate, employmentType, contractType, status, createdAt]
+
+    CreateOfferBody:
+      type: object
+      properties:
+        salary: { type: number }
+        currency: { type: ["string", "null"] }
+        startDate: { type: string }
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+        contractType:
+          type: string
+          enum: [permanent, fixed_term, contract]
+        benefitsNote: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [draft, sent, accepted, declined, withdrawn]
+      required: [salary, startDate, employmentType, contractType]
+
+    UpdateOfferBody:
+      type: object
+      properties:
+        salary: { type: number }
+        currency: { type: string }
+        startDate: { type: string }
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+        contractType:
+          type: string
+          enum: [permanent, fixed_term, contract]
+        benefitsNote: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [draft, sent, accepted, declined, withdrawn]
+        declinedReason: { type: ["string", "null"] }
+
+    ConvertCandidateBody:
+      type: object
+      properties:
+        startDate: { type: ["string", "null"] }
+        salary: { type: ["number", "null"] }
+        jobTitle: { type: ["string", "null"] }
+        department: { type: ["string", "null"] }
+        employmentType:
+          type: string
+          enum: [full_time, part_time, contractor]
+
+    RecruitmentStats:
+      type: object
+      properties:
+        openJobs: { type: integer }
+        totalCandidates: { type: integer }
+        activeCandidates: { type: integer }
+        hiredThisMonth: { type: integer }
+        interviewsThisWeek: { type: integer }
+        pendingOffers: { type: integer }
+        stageBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              stage: { type: string }
+              count: { type: integer }
+            required: [stage, count]
+      required: [openJobs, totalCandidates, activeCandidates, hiredThisMonth, interviewsThisWeek, pendingOffers, stageBreakdown]
+
+    PublicApplicationBody:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: ["string", "null"] }
+        jobId: { type: ["integer", "null"] }
+        linkedinUrl: { type: ["string", "null"] }
+        currentCompany: { type: ["string", "null"] }
+        currentRole: { type: ["string", "null"] }
+        yearsExperience: { type: ["integer", "null"] }
+        currentSalary: { type: ["number", "null"] }
+        expectedSalary: { type: ["number", "null"] }
+        noticePeriod: { type: ["string", "null"] }
+        lastBonusAmount: { type: ["number", "null"] }
+        lastBonusPercentage: { type: ["number", "null"] }
+        currentPensionPercentage: { type: ["number", "null"] }
+        referenceOneName: { type: ["string", "null"] }
+        referenceOneCompany: { type: ["string", "null"] }
+        referenceOneJobTitle: { type: ["string", "null"] }
+        referenceOneEmail: { type: ["string", "null"] }
+        referenceOnePhone: { type: ["string", "null"] }
+        referenceTwoName: { type: ["string", "null"] }
+        referenceTwoCompany: { type: ["string", "null"] }
+        referenceTwoJobTitle: { type: ["string", "null"] }
+        referenceTwoEmail: { type: ["string", "null"] }
+        referenceTwoPhone: { type: ["string", "null"] }
+        rightToWorkStatus:
+          type: ["string", "null"]
+          enum: [uk_citizen, settled, work_visa, sponsorship_required, unknown, null]
+        coverLetter: { type: ["string", "null"] }
+        documents:
+          type: array
+          items: { $ref: "#/components/schemas/CreateCandidateDocumentBody" }
+      required: [firstName, lastName, email]
+
+    PublicApplicationResponse:
+      type: object
+      properties:
+        id: { type: integer }
+        message: { type: string }
+      required: [id, message]
+
+    PublicJobsUnavailableResponse:
+      type: object
+      properties:
+        error: { type: string }
+        retryable: { type: boolean }
+      required: [error, retryable]
+
+    OnboardingTask:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        category:
+          type: string
+          enum: [admin, it_systems, documents, compliance, benefits, meet_team, other]
+        dueDate: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [pending, completed]
+        completedAt: { type: ["string", "null"] }
+        completedBy: { type: ["string", "null"] }
+        sortOrder: { type: integer }
+        isCustom: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required: [id, employeeId, title, category, status, sortOrder, isCustom, createdAt, updatedAt]
+
+    CreateOnboardingTaskBody:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        category:
+          type: ["string", "null"]
+          enum: [admin, it_systems, documents, compliance, benefits, meet_team, other, null]
+        dueDate: { type: ["string", "null"] }
+        sortOrder: { type: ["integer", "null"] }
+      required: [title]
+
+    UpdateOnboardingTaskBody:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        category:
+          type: string
+          enum: [admin, it_systems, documents, compliance, benefits, meet_team, other]
+        dueDate: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [pending, completed]
+        completedBy: { type: ["string", "null"] }
+
+    OnboardingEmployeeOverview:
+      type: object
+      properties:
+        employeeId: { type: integer }
+        employeeNumber: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        jobTitle: { type: string }
+        department: { type: string }
+        startDate: { type: string }
+        totalTasks: { type: integer }
+        completedTasks: { type: integer }
+        overdueTasks: { type: integer }
+        progressPercent: { type: integer }
+        statusLabel:
+          type: string
+          enum: [not_started, on_track, needs_attention, completed]
+      required: [employeeId, employeeNumber, firstName, lastName, jobTitle, department, startDate, totalTasks, completedTasks, overdueTasks, progressPercent, statusLabel]
+
+    TrainingRecord:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        name: { type: string }
+        category:
+          type: string
+          enum: [mandatory, professional, technical, soft_skills, compliance, other]
+        provider: { type: ["string", "null"] }
+        completedDate: { type: ["string", "null"] }
+        expiryDate: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [pending, in_progress, completed, expired]
+        cost: { type: ["number", "null"] }
+        currency: { type: string }
+        certificateObjectPath: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        isMandatory: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required: [id, employeeId, name, category, status, currency, isMandatory, createdAt, updatedAt]
+
+    TrainingRecordWithEmployee:
+      allOf:
+        - $ref: "#/components/schemas/TrainingRecord"
+        - type: object
+          properties:
+            employeeName: { type: string }
+            employeeNumber: { type: string }
+            department: { type: string }
+          required: [employeeName, employeeNumber, department]
+
+    CreateTrainingRecordBody:
+      type: object
+      properties:
+        name: { type: string }
+        category:
+          type: ["string", "null"]
+          enum: [mandatory, professional, technical, soft_skills, compliance, other, null]
+        provider: { type: ["string", "null"] }
+        completedDate: { type: ["string", "null"] }
+        expiryDate: { type: ["string", "null"] }
+        status:
+          type: ["string", "null"]
+          enum: [pending, in_progress, completed, expired, null]
+        cost: { type: ["number", "null"] }
+        currency: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        isMandatory: { type: ["boolean", "null"] }
+      required: [name]
+
+    UpdateTrainingRecordBody:
+      type: object
+      properties:
+        name: { type: string }
+        category:
+          type: string
+          enum: [mandatory, professional, technical, soft_skills, compliance, other]
+        provider: { type: ["string", "null"] }
+        completedDate: { type: ["string", "null"] }
+        expiryDate: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [pending, in_progress, completed, expired]
+        cost: { type: ["number", "null"] }
+        currency: { type: string }
+        notes: { type: ["string", "null"] }
+
+    OnboardingTrainingStats:
+      type: object
+      properties:
+        employeesInOnboarding: { type: integer }
+        overdueOnboardingTasks: { type: integer }
+        overdueTrainingRecords: { type: integer }
+        expiringSoonRecords: { type: integer }
+      required: [employeesInOnboarding, overdueOnboardingTasks, overdueTrainingRecords, expiringSoonRecords]
+
+    LeaveEntitlement:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        year: { type: integer }
+        leaveType:
+          type: string
+          enum: [annual, maternity, paternity, compassionate, study, unpaid]
+        entitledDays: { type: number }
+        carriedOverDays: { type: number }
+        usedDays: { type: number }
+        remainingDays: { type: number }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required: [id, employeeId, year, leaveType, entitledDays, carriedOverDays, usedDays, remainingDays, createdAt, updatedAt]
+
+    UpsertLeaveEntitlementBody:
+      type: object
+      properties:
+        year: { type: integer }
+        entitledDays: { type: number }
+        carriedOverDays: { type: ["number", "null"] }
+      required: [year, entitledDays]
+
+    SeedLeaveDefaultsBody:
+      type: object
+      properties:
+        year: { type: ["integer", "null"] }
+
+    LeaveRequest:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        leaveType:
+          type: string
+          enum: [annual, maternity, paternity, compassionate, study, unpaid]
+        startDate: { type: string }
+        endDate: { type: string }
+        workingDays: { type: number }
+        reason: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [pending, approved, declined, cancelled]
+        reviewedBy: { type: ["string", "null"] }
+        reviewedAt: { type: ["string", "null"] }
+        reviewerNote: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required: [id, employeeId, leaveType, startDate, endDate, workingDays, status, createdAt, updatedAt]
+
+    LeaveRequestWithEmployee:
+      allOf:
+        - $ref: "#/components/schemas/LeaveRequest"
+        - type: object
+          properties:
+            employeeName: { type: string }
+            employeeNumber: { type: string }
+            department: { type: string }
+            jobTitle: { type: string }
+          required: [employeeName, employeeNumber, department, jobTitle]
+
+    CreateLeaveRequestBody:
+      type: object
+      properties:
+        leaveType:
+          type: string
+          enum: [annual, maternity, paternity, compassionate, study, unpaid]
+        startDate: { type: string }
+        endDate: { type: string }
+        reason: { type: ["string", "null"] }
+      required: [leaveType, startDate, endDate]
+
+    UpdateLeaveRequestBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, declined, cancelled]
+        reviewerNote: { type: ["string", "null"] }
+        reviewedBy: { type: ["string", "null"] }
+        leaveType:
+          type: string
+          enum: [annual, maternity, paternity, compassionate, study, unpaid]
+        startDate: { type: string }
+        endDate: { type: string }
+        reason: { type: ["string", "null"] }
+
+    LeaveCalendarEntry:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        employeeName: { type: string }
+        leaveType:
+          type: string
+          enum: [annual, maternity, paternity, compassionate, study, unpaid]
+        startDate: { type: string }
+        endDate: { type: string }
+      required: [id, employeeId, employeeName, leaveType, startDate, endDate]
+
+    LeaveStats:
+      type: object
+      properties:
+        pendingRequests: { type: integer }
+        offTodayCount: { type: integer }
+        offSickTodayCount: { type: integer }
+        offTodayNames:
+          type: array
+          items: { type: string }
+        offSickTodayNames:
+          type: array
+          items: { type: string }
+      required: [pendingRequests, offTodayCount, offSickTodayCount, offTodayNames, offSickTodayNames]
+
+    SicknessAbsence:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        startDate: { type: string }
+        endDate: { type: ["string", "null"] }
+        daysLost: { type: number }
+        reason: { type: ["string", "null"] }
+        selfCertified: { type: boolean }
+        fitNoteReceived: { type: boolean }
+        fitNoteExpiry: { type: ["string", "null"] }
+        returnToWorkCompleted: { type: boolean }
+        returnToWorkDate: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required: [id, employeeId, startDate, daysLost, selfCertified, fitNoteReceived, returnToWorkCompleted, createdAt, updatedAt]
+
+    SicknessAbsenceWithEmployee:
+      allOf:
+        - $ref: "#/components/schemas/SicknessAbsence"
+        - type: object
+          properties:
+            employeeName: { type: string }
+            employeeNumber: { type: string }
+            department: { type: string }
+            bradfordScore: { type: integer }
+            riskBand:
+              type: string
+              enum: [low, medium, high, critical]
+          required: [employeeName, employeeNumber, department, bradfordScore, riskBand]
+
+    CreateSicknessAbsenceBody:
+      type: object
+      properties:
+        startDate: { type: string }
+        endDate: { type: ["string", "null"] }
+        reason: { type: ["string", "null"] }
+        selfCertified: { type: ["boolean", "null"] }
+        fitNoteReceived: { type: ["boolean", "null"] }
+        fitNoteExpiry: { type: ["string", "null"] }
+        returnToWorkCompleted: { type: ["boolean", "null"] }
+        returnToWorkDate: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+      required: [startDate]
+
+    UpdateSicknessAbsenceBody:
+      type: object
+      properties:
+        startDate: { type: string }
+        endDate: { type: ["string", "null"] }
+        reason: { type: ["string", "null"] }
+        selfCertified: { type: boolean }
+        fitNoteReceived: { type: boolean }
+        fitNoteExpiry: { type: ["string", "null"] }
+        returnToWorkCompleted: { type: boolean }
+        returnToWorkDate: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+
+    PayStats:
+      type: object
+      properties:
+        employeeCount: { type: integer }
+        totalAnnualPayroll: { type: number }
+        totalMonthlyPayroll: { type: number }
+        averageSalary: { type: number }
+        dueForReviewCount: { type: integer }
+      required: [employeeCount, totalAnnualPayroll, totalMonthlyPayroll, averageSalary, dueForReviewCount]
+
+    DepartmentPay:
+      type: object
+      properties:
+        department: { type: string }
+        headcount: { type: integer }
+        totalAnnualCost: { type: number }
+        averageSalary: { type: number }
+        minSalary: { type: number }
+        maxSalary: { type: number }
+      required: [department, headcount, totalAnnualCost, averageSalary, minSalary, maxSalary]
+
+    SalaryBand:
+      type: object
+      properties:
+        label: { type: string }
+        min: { type: number }
+        max: { type: ["number", "null"] }
+        count: { type: integer }
+      required: [label, min, count]
+
+    SalaryChangeWithEmployee:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        employeeName: { type: string }
+        employeeNumber: { type: string }
+        department: { type: string }
+        previousSalary: { type: ["number", "null"] }
+        newSalary: { type: number }
+        percentChange: { type: ["number", "null"] }
+        effectiveDate: { type: string }
+        reason: { type: ["string", "null"] }
+        createdAt: { type: string }
+      required: [id, employeeId, employeeName, employeeNumber, department, newSalary, effectiveDate, createdAt]
+
+    DueForReviewEmployee:
+      type: object
+      properties:
+        employeeId: { type: integer }
+        employeeName: { type: string }
+        employeeNumber: { type: string }
+        department: { type: string }
+        jobTitle: { type: string }
+        currentSalary: { type: ["number", "null"] }
+        lastReviewDate: { type: ["string", "null"] }
+        monthsSinceReview: { type: ["integer", "null"] }
+      required: [employeeId, employeeName, employeeNumber, department, jobTitle]
+
+    BulkReviewBody:
+      type: object
+      properties:
+        effectiveDate: { type: string }
+        reason: { type: ["string", "null"] }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              employeeId: { type: integer }
+              newSalary: { type: number, minimum: 0 }
+            required: [employeeId, newSalary]
+      required: [effectiveDate, items]
+
+    BulkReviewResult:
+      type: object
+      properties:
+        applied: { type: integer }
+        skipped: { type: integer }
+      required: [applied, skipped]
+
+    BenefitCatalog:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        category:
+          type: string
+          enum: [pension, health, life_assurance, income_protection, dental, allowance, other]
+        provider: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        defaultAnnualValue: { type: ["number", "null"] }
+        isActive: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required: [id, name, category, isActive, createdAt, updatedAt]
+
+    CreateBenefitBody:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        category:
+          type: string
+          enum: [pension, health, life_assurance, income_protection, dental, allowance, other]
+        provider: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        defaultAnnualValue: { type: ["number", "null"], minimum: 0 }
+        isActive: { type: ["boolean", "null"] }
+      required: [name, category]
+
+    UpdateBenefitBody:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        category:
+          type: string
+          enum: [pension, health, life_assurance, income_protection, dental, allowance, other]
+        provider: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        defaultAnnualValue: { type: ["number", "null"], minimum: 0 }
+        isActive: { type: boolean }
+
+    EmployeeBenefit:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeId: { type: integer }
+        benefitId: { type: integer }
+        employerContribution: { type: number }
+        employeeContribution: { type: number }
+        annualValue: { type: number }
+        startDate: { type: string }
+        endDate: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required: [id, employeeId, benefitId, employerContribution, employeeContribution, annualValue, startDate, createdAt, updatedAt]
+
+    EmployeeBenefitWithCatalog:
+      allOf:
+        - $ref: "#/components/schemas/EmployeeBenefit"
+        - type: object
+          properties:
+            name: { type: string }
+            category:
+              type: string
+              enum: [pension, health, life_assurance, income_protection, dental, allowance, other]
+            provider: { type: ["string", "null"] }
+          required: [name, category]
+
+    CreateEmployeeBenefitBody:
+      type: object
+      properties:
+        benefitId: { type: integer }
+        employerContribution: { type: ["number", "null"], minimum: 0 }
+        employeeContribution: { type: ["number", "null"], minimum: 0 }
+        annualValue: { type: ["number", "null"], minimum: 0 }
+        startDate: { type: ["string", "null"] }
+        endDate: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+      required: [benefitId]
+
+    UpdateEmployeeBenefitBody:
+      type: object
+      properties:
+        employerContribution: { type: number, minimum: 0 }
+        employeeContribution: { type: number, minimum: 0 }
+        annualValue: { type: number, minimum: 0 }
+        startDate: { type: string }
+        endDate: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+
+    TotalRewardStatement:
+      type: object
+      properties:
+        employeeId: { type: integer }
+        employeeName: { type: string }
+        employeeNumber: { type: string }
+        jobTitle: { type: string }
+        department: { type: string }
+        startDate: { type: ["string", "null"] }
+        baseSalary: { type: number }
+        benefits:
+          type: array
+          items: { $ref: "#/components/schemas/EmployeeBenefitWithCatalog" }
+        totalBenefitsValue: { type: number }
+        totalPackageValue: { type: number }
+        leaveEntitlements:
+          type: array
+          items:
+            type: object
+            properties:
+              leaveType: { type: string }
+              entitledDays: { type: number }
+              remainingDays: { type: number }
+            required: [leaveType, entitledDays, remainingDays]
+        generatedAt: { type: string }
+      required: [employeeId, employeeName, employeeNumber, jobTitle, department, baseSalary, benefits, totalBenefitsValue, totalPackageValue, leaveEntitlements, generatedAt]
+
+    SicknessEmployeeSummary:
+      type: object
+      properties:
+        employeeId: { type: integer }
+        bradfordScore: { type: integer }
+        riskBand:
+          type: string
+          enum: [low, medium, high, critical]
+        episodesLast12Months: { type: integer }
+        daysLostLast12Months: { type: number }
+        totalEpisodes: { type: integer }
+        totalDaysLost: { type: number }
+        currentlyOff: { type: boolean }
+        absences:
+          type: array
+          items: { $ref: "#/components/schemas/SicknessAbsence" }
+      required: [employeeId, bradfordScore, riskBand, episodesLast12Months, daysLostLast12Months, totalEpisodes, totalDaysLost, currentlyOff, absences]
+
+    ImportRowError:
+      type: object
+      properties:
+        rowNumber: { type: integer }
+        status: { type: string, enum: [ok, error] }
+        errors:
+          type: array
+          items: { type: string }
+        data:
+          type: object
+          additionalProperties: true
+      required: [rowNumber, status, errors, data]
+
+    ImportPreview:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            total: { type: integer }
+            valid: { type: integer }
+            invalid: { type: integer }
+          required: [total, valid, invalid]
+        rows:
+          type: array
+          items: { $ref: "#/components/schemas/ImportRowError" }
+      required: [summary, rows]
+
+    ImportCommitBody:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        sendWelcomeEmails: { type: boolean }
+        temporaryPassword: { type: ["string", "null"] }
+      required: [rows]
+
+    ImportCommitResultEmployee:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeNumber: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        emailSent: { type: boolean }
+      required: [id, employeeNumber, firstName, lastName, email, emailSent]
+
+    ImportCommitResult:
+      type: object
+      properties:
+        imported: { type: integer }
+        skipped: { type: integer }
+        emailsSent: { type: integer }
+        employees:
+          type: array
+          items: { $ref: "#/components/schemas/ImportCommitResultEmployee" }
+      required: [imported, skipped, emailsSent, employees]
+
+    EmailSettings:
+      type: object
+      properties:
+        configured: { type: boolean }
+        host: { type: string }
+        from: { type: string }
+        appUrl: { type: string }
+        missing:
+          type: array
+          items: { type: string }
+      required: [configured, host, from, appUrl, missing]
+
+    EmailTestResult:
+      type: object
+      properties:
+        sent: { type: boolean }
+        error: { type: ["string", "null"] }
+      required: [sent]

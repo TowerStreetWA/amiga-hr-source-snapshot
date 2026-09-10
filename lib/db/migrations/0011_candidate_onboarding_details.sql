@@ -1,0 +1,16 @@
+ALTER TABLE "candidates"
+  ADD COLUMN IF NOT EXISTS "current_salary" numeric(12, 2),
+  ADD COLUMN IF NOT EXISTS "notice_period" text,
+  ADD COLUMN IF NOT EXISTS "last_bonus_amount" numeric(12, 2),
+  ADD COLUMN IF NOT EXISTS "last_bonus_percentage" numeric(5, 2),
+  ADD COLUMN IF NOT EXISTS "current_pension_percentage" numeric(5, 2),
+  ADD COLUMN IF NOT EXISTS "reference_one_name" text,
+  ADD COLUMN IF NOT EXISTS "reference_one_company" text,
+  ADD COLUMN IF NOT EXISTS "reference_one_job_title" text,
+  ADD COLUMN IF NOT EXISTS "reference_one_email" text,
+  ADD COLUMN IF NOT EXISTS "reference_one_phone" text,
+  ADD COLUMN IF NOT EXISTS "reference_two_name" text,
+  ADD COLUMN IF NOT EXISTS "reference_two_company" text,
+  ADD COLUMN IF NOT EXISTS "reference_two_job_title" text,
+  ADD COLUMN IF NOT EXISTS "reference_two_email" text,
+  ADD COLUMN IF NOT EXISTS "reference_two_phone" text;
